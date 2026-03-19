@@ -1,6 +1,10 @@
 <div align="center">
 
-# DailyIQ
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/daily-iq-topbar-logo.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/daily-iq-topbar-logo-black.svg">
+  <img src="assets/daily-iq-topbar-logo-black.svg" alt="DailyIQ" width="320" />
+</picture>
 
 **Real-time market intelligence platform — live prices, NLP-driven sentiment, technical analysis, and portfolio tools for 875+ equities and ETFs.**
 
@@ -24,8 +28,6 @@
 | Monthly Page Views | Tracked Securities | API Endpoints | Content Pages |
 |:---:|:---:|:---:|:---:|
 | **13,000+** | **875+ equities & ETFs** | **136 REST endpoints** | **2,171 MDX pages** |
-
-*Deployed on a single DigitalOcean VPS — no container orchestration, no managed databases.*
 
 ---
 
@@ -86,7 +88,6 @@ flowchart LR
 | **Data Sources** | Interactive Brokers, Finnhub, Yahoo Finance, FRED, GDELT |
 | **Infrastructure** | DigitalOcean VPS, Ubuntu, Caddy, systemd, PM2 |
 | **Auth & Payments** | JWT (HS256), Google OAuth, bcrypt, Stripe |
-| **SEO** | 5 dynamic sitemaps, JSON-LD, OpenGraph, IndexNow |
 
 ---
 
@@ -114,36 +115,22 @@ Five dynamic XML sitemaps cover the full URL surface (stocks, ETFs, learn articl
 
 ## Infrastructure & Deployment
 
-DailyIQ runs on a single DigitalOcean VPS with no Docker, no Kubernetes, and no managed database services.
+DailyIQ runs on a single DigitalOcean VPS.
 
 - **Caddy** handles TLS termination and reverse proxying — zero-config HTTPS via Let's Encrypt, automatic HTTP→HTTPS redirect
 - **12 systemd services** run the backend scheduler workers independently; each owns one domain (news, NLP, live prices, technicals, earnings, social posts, user alerts, macro calendar) and uses database-backed leases to prevent duplicate instances
 - **PM2** manages the Next.js frontend process with automatic restart on crash
 - **SQLite WAL mode** provides concurrent read access for API endpoints alongside single-writer batch scripts, with custom retry helpers implementing up to 50 retries with exponential backoff
-- **Deployment** is SSH-based: `git pull` → `npm run build` → `systemctl restart` — no CI/CD pipeline required at current scale
 
----
-
-## Design Decisions
-
-- **SQLite WAL over PostgreSQL** — WAL mode delivers concurrent readers with a single writer, eliminating ops overhead (no server process, no connection pooling, no replication config). Single-file backups are trivially scriptable. At current traffic levels the throughput ceiling is nowhere near reached.
-
-- **Snapshot tables over query-time aggregation** — Precomputing denormalized cache rows at build time means the API never joins across raw tables at request time. Eventual consistency is acceptable for market data (seconds-old prices, minutes-old sentiment) and the tradeoff is dramatically simpler, faster endpoints.
-
-- **Independent schedulers over a task orchestrator** — Each scheduler process owns exactly one domain. A crash in the news pipeline does not cascade to live price polling or earnings ingestion. No Celery, no Redis, no DAG definitions — plain Python `schedule` loops managed by systemd.
-
-- **Next.js API proxy over direct backend access** — All browser requests go through Next.js `/api-proxy/*` rewrites to the backend. This eliminates CORS entirely, hides the backend address from the client, and keeps server-side rendering calls on the same internal network path.
-
-- **MDX over a headless CMS** — Stock content pages are statically compiled at build time from `.mdx` files with typed frontmatter. The generation pipeline is a Python script; the output is version-controlled source code. No third-party CMS dependency, no webhook infrastructure, no runtime content fetching.
-
----
 
 <div align="center">
 
 ---
 
-*This repository contains architecture documentation only. The source code is proprietary.*
+*This repository contains architecture documentation only. The source code is not inside of this repo.*
 
 [dailyiq.me](https://dailyiq.me)
+
+
 
 </div>

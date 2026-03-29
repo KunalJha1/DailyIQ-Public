@@ -108,20 +108,16 @@ All high-traffic API responses are served from precomputed snapshot tables (`pri
 **MDX Content System**
 2,171 stock and ETF pages were generated through a fully automated pipeline: company data is assembled into structured prompts, sent to Gemini 2.5 Flash in batches of three symbols with five separate section calls each, and the resulting JSON is assembled into typed MDX files. Pages are statically compiled at build time — zero CMS dependency, full TypeScript type safety.
 
-**SEO Infrastructure**
-Five dynamic XML sitemaps cover the full URL surface (stocks, ETFs, learn articles, screener, and index pages). Every page includes JSON-LD structured data, OpenGraph metadata, and Twitter card tags. IndexNow integration pushes new or updated URLs to Bing and Yandex on the same day they go live.
-
 ---
 
 ## Infrastructure & Deployment
 
 DailyIQ runs on a single DigitalOcean VPS.
 
-- **Caddy** handles TLS termination and reverse proxying — zero-config HTTPS via Let's Encrypt, automatic HTTP→HTTPS redirect
-- **12 systemd services** run the backend scheduler workers independently; each owns one domain (news, NLP, live prices, technicals, earnings, social posts, user alerts, macro calendar) and uses database-backed leases to prevent duplicate instances
+- **Caddy** handles TLS termination and reverse proxying
+- **Background services** run the backend scheduler workers independently; each owns one domain (news, NLP, live prices, technicals, earnings, social posts, user alerts, macro calendar) and uses database-backed leases to prevent duplicate instances
 - **PM2** manages the Next.js frontend process with automatic restart on crash
 - **SQLite WAL mode** provides concurrent read access for API endpoints alongside single-writer batch scripts, with custom retry helpers implementing up to 50 retries with exponential backoff
-
 
 <div align="center">
 
